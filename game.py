@@ -37,8 +37,38 @@ class QuizGame:
 
     # --- 기능 ---
     def play(self):
-        # 퀴즈 풀기 전체 흐름
-        pass
+      self.clear()
+      print("=== 퀴즈 풀기 ===\n")
+
+      if not self.Quizzes:
+          print("등록된 퀴즈가 없습니다.")
+          input("엔터를 누르면 메뉴로 돌아갑니다.")
+          return self.show_menu()
+
+      score = 0
+
+      for i, quiz in enumerate(self.Quizzes):
+          print(f"[{i + 1} / {len(self.Quizzes)}]")
+          quiz.display()
+
+          user_answer = self.input_number("정답 번호 > ", 1, 4)
+
+          if quiz.check(user_answer):
+              print("정답입니다!\n")
+              score += 1
+          else:
+              print(f"오답입니다. 정답은 {quiz.answer}번입니다.\n")
+
+      # 최종 결과
+      print(f"최종 점수: {score} / {len(self.Quizzes)}")
+
+      if score > self.best_score:
+          self.best_score = score
+          print("최고 점수를 갱신했습니다!")
+
+      self.save()
+      input("\n엔터를 누르면 메뉴로 돌아갑니다.")
+      self.show_menu()
     
     def add_quiz(self):
       self.clear()

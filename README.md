@@ -271,6 +271,29 @@ git merge feature/quiz-play
 git push origin main
 ```
 
+play() 호출
+│
+├── 퀴즈 없음? → 안내 메시지 → show_menu()
+│
+└── 퀴즈 있음
+    │
+    ├── score = 0
+    │
+    └── for quiz in self.quizzes
+        │
+        ├── quiz.display()         # 문제 + 선택지 출력
+        ├── input_number(1~4)      # 정답 입력
+        ├── quiz.check(answer)
+        │   ├── 정답 → "정답입니다!" + score += 1
+        │   └── 오답 → "오답입니다. 정답은 N번입니다."
+        │
+        └── 모든 문제 완료
+            │
+            ├── 최종 점수 출력
+            ├── best_score 갱신 여부 확인
+            ├── save()
+            └── show_menu()
+
 ---
 
 ### STEP 6 — 퀴즈 추가 기능 구현
