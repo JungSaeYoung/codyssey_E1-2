@@ -1,18 +1,13 @@
 import os
 import sys
+from quiz import Quiz
 
 class QuizGame:
     def __init__(self):
         self.quizzes = []
         self.best_score = 0
         self.is_windows = os.name == "nt"  # 초기화 시 OS 한 번만 확인
-
-    def clear(self):
-        if self.is_windows:
-            os.system("cls")
-        else:
-            sys.stdout.write("\033[2J\033[H")
-            sys.stdout.flush()
+        self.Quizzes = self.default_quizzes()  # 기본 탑재된 퀴즈 로드
 
     # --- 진입점 ---
     def run(self):
@@ -23,15 +18,7 @@ class QuizGame:
         self.clear()
         main_menu = "=== 퀴즈 게임 ===\n1. 퀴즈 풀기\n2. 퀴즈 추가\n3. 퀴즈 목록\n4. 점수 확인\n5. 종료"
         print(main_menu)
-        main_input = input("선택 > ").strip()
-
-        if not main_input.isdigit():
-            print("***숫자만 입력하세요.***")
-            return self.show_menu()
-
-        if main_input not in ["1", "2", "3", "4", "5"]:
-            print("***잘못된 범위의 숫자입니다. 다시 입력해주세요.***")
-            return self.show_menu()
+        main_input = self.input_number("메뉴 번호를 입력하세요 > ", 1, 5)
 
         return self.handle_menu(int(main_input))
 
@@ -48,27 +35,101 @@ class QuizGame:
             print("게임을 종료합니다.")
             exit()
 
-    # # --- 기능 ---
-    # def play(self):
-    #     # 퀴즈 풀기 전체 흐름
+    # --- 기능 ---
+    def play(self):
+        # 퀴즈 풀기 전체 흐름
+        pass
+    
+    def add_quiz(self):
+      self.clear()
+      print("=== 퀴즈 추가 ===")
 
-    # def add_quiz(self):
-    #     # 새 퀴즈 입력받아 추가
+      question = input("문제를 입력하세요 > ").strip()
 
-    # def show_list(self):
-    #     # 퀴즈 목록 출력
+      choices = []
+      for i in range(1, 5):
+          choice = input(f"{i}번 선택지 > ").strip()
+          choices.append(choice)
 
-    # def show_score(self):
-    #     # 최고 점수 출력
+      answer = self.input_number("정답 번호 (1~4) > ", 1, 4)
 
-    # # --- 파일 입출력 ---
-    # def save(self):
-    #     # state.json에 저장
+      self.quizzes.append(Quiz(question, choices, answer))
+      self.save()  # 즉시 저장
+      print("퀴즈가 추가되었습니다.")
+      self.show_menu()
 
-    # def load(self):
-    #     # state.json에서 불러오기
+    def show_list(self):
+        # 퀴즈 목록 출력
+        pass
 
-    # # --- 입력 처리 ---
-    # def input_number(self, prompt, min_val, max_val):
-    #     # 숫자 입력 + 예외처리 반복 루프 → int
-    #     # 공백/빈값/문자/범위밖 모두 여기서 처리
+    def show_score(self):
+        # 최고 점수 출력
+        pass
+
+    # --- 파일 입출력 ---
+    def save(self):
+        # state.json에 저장
+        pass
+
+    def load(self):
+        # state.json에서 불러오기
+        pass
+    
+    # --- 유틸리티 ---
+    # 숫자 입력 시 예외 처리를 위해 input 함수 래핑
+    def input_number(self, prompt, min_val, max_val):
+      while True:
+          user_input = input(prompt).strip()
+          if not user_input.isdigit():
+              print("***숫자만 입력하세요.***")
+              continue
+
+          number = int(user_input)
+          if number < min_val or number > max_val:
+              print(f"***{min_val}에서 {max_val} 사이의 숫자를 입력하세요.***")
+              continue
+
+          return number
+
+    # 화면 클리어 함수 (Windows와 Unix 계열 OS 모두 지원)
+    def clear(self):
+      if self.is_windows:
+          os.system("cls")
+      else:
+          sys.stdout.write("\033[2J\033[H")
+          sys.stdout.flush()
+
+    # 기본 퀴즈 6개 제공
+    def default_quizzes(self):
+        return [
+            Quiz(
+                question="다음 중 파이썬의 자료형이 아닌 것은?",
+                choices=["list", "tuple", "dict", "array"],
+                answer=4
+            ),
+            Quiz(
+                question="다음 중 파이썬에서 반복문을 만드는 키워드가 아닌 것은?",
+                choices=["for", "while", "repeat", "do"],
+                answer=3
+            ),
+            Quiz(
+                question="다음 중 파이썬에서 함수를 정의하는 키워드는?",
+                choices=["function", "def", "fun", "define"],
+                answer=2
+            ),
+            Quiz(
+                question="다음 중 파이썬에서 예외 처리를 위한 키워드가 아닌 것은?",
+                choices=["try", "except", "catch", "finally"],
+                answer=3
+            ),
+            Quiz(
+                question="다음 중 파이썬에서 모듈을 가져오는 키워드는?",
+                choices=["import", "include", "require", "using"],
+                answer=1
+            ),
+            Quiz(
+                question="다음 중 파이썬에서 클래스 정의에 사용하는 키워드는?",
+                choices=["class", "object", "def", "struct"],
+                answer=1
+            )
+        ]

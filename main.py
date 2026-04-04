@@ -7,10 +7,10 @@ def main():
         game.run()
     except KeyboardInterrupt:
         print("\n\n프로그램을 종료합니다.(keyboard interrupt)")
-        # game.save()
+        game.save()
     except EOFError:
         print("\n입력 스트림이 종료되었습니다.(EOF error)")
-        # game.save()
+        game.save()
 
 if __name__ == "__main__":
     main()
