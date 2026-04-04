@@ -1,10 +1,12 @@
 # 퀴즈 게임 프로젝트
 
 ## 목차
+
 1. [환경 설정](#환경-설정)
-2. [단계별 구현 순서](#단계별-구현-순서)
-3. [커밋 메시지 컨벤션](#커밋-메시지-컨벤션)
-4. [제출 체크리스트](#제출-체크리스트)
+2. [브랜치 전략](#브랜치-전략)
+3. [단계별 구현 순서](#단계별-구현-순서)
+4. [커밋 메시지 컨벤션](#커밋-메시지-컨벤션)
+5. [제출 체크리스트](#제출-체크리스트)
 
 ---
 
@@ -29,7 +31,7 @@ uv init .
 ### 3. Python 버전 고정
 
 ```bash
-uv python pin 3.11
+uv python pin 3.12
 ```
 
 ### 4. 가상환경 생성 및 활성화
@@ -74,11 +76,55 @@ __pycache__/
 
 ---
 
+## 브랜치 전략
+
+`main` 브랜치에는 완성된 기능만 병합합니다.
+기능 개발은 항상 별도 브랜치를 만들어 작업한 뒤 `main`에 병합합니다.
+
+```
+main
+├── feature/init          → 프로젝트 초기 설정
+├── feature/menu          → 메뉴 기능
+├── feature/quiz-class    → Quiz 클래스 + 기본 데이터
+├── feature/quiz-play     → 퀴즈 풀기
+├── feature/quiz-add      → 퀴즈 추가
+├── feature/quiz-list     → 퀴즈 목록
+├── feature/score         → 점수 확인
+├── feature/quiz-game     → QuizGame 클래스 정리
+├── feature/file-io       → state.json 저장/불러오기
+└── feature/docs          → README.md 작성
+```
+
+### 브랜치 작업 기본 흐름
+
+```bash
+# 1. 새 브랜치 생성 및 이동
+git checkout -b feature/브랜치명
+
+# 2. 작업 후 커밋
+git add .
+git commit -m "feat: 기능 설명"
+
+# 3. main으로 돌아와서 병합
+git checkout main
+git merge feature/브랜치명
+
+# 4. 병합한 브랜치 삭제 (선택)
+git branch -d feature/브랜치명
+```
+
+---
+
 ## 단계별 구현 순서
 
 ### STEP 1 — Git 저장소 설정
 
+```bash
+git checkout -b feature/init
+```
+
 **작업 내용**
+
 - GitHub에 새 저장소 생성
 - 로컬에 저장소 초기화 (`git init`)
 - `.gitignore`, `README.md` 파일 생성
@@ -86,6 +132,8 @@ __pycache__/
 ```bash
 git add .
 git commit -m "init: 프로젝트 초기 설정"
+git checkout main
+git merge feature/init
 git push -u origin main
 ```
 
@@ -93,7 +141,12 @@ git push -u origin main
 
 ### STEP 2 — 메뉴 기능 구현
 
+```bash
+git checkout -b feature/menu
+```
+
 **요구사항**
+
 - 실행 시 메뉴가 출력된다
 - 번호를 입력하면 해당 기능으로 이동한다
 - 종료 기능이 있다
@@ -112,14 +165,18 @@ git push -u origin main
 ```
 
 ```bash
+git add .
 git commit -m "feat: 메인 메뉴 출력 및 입력 처리 구현"
+git checkout main
+git merge feature/menu
+git push origin main
 ```
 
 ---
 
-### STEP 3 — 공통 입력 / 예외 처리 기준 적용
+### STEP 3 — 공통 입력 / 예외 처리 기준
 
-모든 입력이 필요한 곳에 아래 기준을 일관되게 적용합니다.
+> 별도 브랜치 없이, 이후 모든 기능 구현 시 아래 기준을 일관되게 적용합니다.
 
 **숫자 입력 처리**
 
@@ -141,9 +198,13 @@ git commit -m "feat: 메인 메뉴 출력 및 입력 처리 구현"
 
 ---
 
-### STEP 4 — Quiz 클래스 정의
+### STEP 4 — Quiz 클래스 정의 + 기본 퀴즈 데이터 작성
 
-**속성**
+```bash
+git checkout -b feature/quiz-class
+```
+
+**Quiz 클래스 속성**
 
 | 속성 | 설명 |
 |---|---|
@@ -151,7 +212,8 @@ git commit -m "feat: 메인 메뉴 출력 및 입력 처리 구현"
 | `choices` | 선택지 4개 (리스트) |
 | `answer` | 정답 번호 (1~4) |
 
-**메서드**
+**Quiz 클래스 메서드**
+
 - `display()` — 문제와 선택지 출력
 - `check(user_answer)` — 정답 여부 반환
 
@@ -159,7 +221,7 @@ git commit -m "feat: 메인 메뉴 출력 및 입력 처리 구현"
 class Quiz:
     def __init__(self, question, choices, answer):
         self.question = question
-        self.choices = choices  # ["①", "②", "③", "④"]
+        self.choices = choices  # ["선택1", "선택2", "선택3", "선택4"]
         self.answer = answer    # 1~4
 
     def display(self):
@@ -169,32 +231,32 @@ class Quiz:
         pass
 ```
 
-```bash
-git commit -m "feat: Quiz 클래스 정의"
-```
+**기본 퀴즈 데이터 요구사항**
 
----
-
-### STEP 5 — 기본 퀴즈 데이터 작성
-
-**요구사항**
 - 본인이 직접 고른 주제의 퀴즈 5개 이상 작성
 - 각 퀴즈는 문제 + 선택지 4개 + 정답 번호 포함
 - `Quiz` 클래스의 인스턴스로 생성
 
 ```bash
+git add .
+git commit -m "feat: Quiz 클래스 정의"
+git add .
 git commit -m "feat: 기본 퀴즈 데이터 5개 작성"
+git checkout main
+git merge feature/quiz-class
+git push origin main
 ```
 
 ---
 
-### STEP 6 — 퀴즈 풀기 기능 구현 (브랜치 활용)
+### STEP 5 — 퀴즈 풀기 기능 구현
 
 ```bash
 git checkout -b feature/quiz-play
 ```
 
 **요구사항**
+
 - 저장된 퀴즈를 순서대로 출제한다
 - 사용자가 1~4 중 번호로 정답을 입력한다
 - 정답/오답 여부를 즉시 알려준다
@@ -202,57 +264,91 @@ git checkout -b feature/quiz-play
 - 퀴즈가 없을 경우 안내 메시지를 출력한다
 
 ```bash
+git add .
 git commit -m "feat: 퀴즈 풀기 기능 구현"
 git checkout main
 git merge feature/quiz-play
+git push origin main
 ```
 
 ---
 
-### STEP 7 — 퀴즈 추가 기능 구현
+### STEP 6 — 퀴즈 추가 기능 구현
+
+```bash
+git checkout -b feature/quiz-add
+```
 
 **입력 순서**
+
 1. 문제 입력
 2. 선택지 4개 입력
 3. 정답 번호 입력 (1~4)
 
 **요구사항**
+
 - 잘못된 입력 시 STEP 3의 공통 처리 기준 적용
 - 추가한 퀴즈를 즉시 `state.json`에 저장
 
 ```bash
+git add .
 git commit -m "feat: 퀴즈 추가 기능 구현"
+git checkout main
+git merge feature/quiz-add
+git push origin main
 ```
 
 ---
 
-### STEP 8 — 퀴즈 목록 기능 구현
+### STEP 7 — 퀴즈 목록 기능 구현
+
+```bash
+git checkout -b feature/quiz-list
+```
 
 **요구사항**
+
 - 번호와 문제를 목록으로 출력한다
 - 퀴즈가 없을 경우 안내 메시지를 출력한다
 
 ```bash
+git add .
 git commit -m "feat: 퀴즈 목록 출력 기능 구현"
+git checkout main
+git merge feature/quiz-list
+git push origin main
 ```
 
 ---
 
-### STEP 9 — 점수 확인 기능 구현
+### STEP 8 — 점수 확인 기능 구현
+
+```bash
+git checkout -b feature/score
+```
 
 **요구사항**
+
 - 퀴즈를 풀 때마다 기존 최고 점수와 비교한다
 - 더 높으면 최고 점수를 갱신하고 `state.json`에 저장한다
 - 메뉴에서 최고 점수를 확인할 수 있다
 - 아직 퀴즈를 풀지 않은 경우 안내 메시지를 출력한다
 
 ```bash
+git add .
 git commit -m "feat: 최고 점수 저장 및 확인 기능 구현"
+git checkout main
+git merge feature/score
+git push origin main
 ```
 
 ---
 
-### STEP 10 — QuizGame 클래스로 코드 정리
+### STEP 9 — QuizGame 클래스로 코드 정리
+
+```bash
+git checkout -b feature/quiz-game
+```
 
 **속성**
 
@@ -274,12 +370,20 @@ git commit -m "feat: 최고 점수 저장 및 확인 기능 구현"
 | `load()` | 파일 불러오기 |
 
 ```bash
+git add .
 git commit -m "refactor: QuizGame 클래스로 전체 구조 정리"
+git checkout main
+git merge feature/quiz-game
+git push origin main
 ```
 
 ---
 
-### STEP 11 — 파일 저장 / 불러오기 (state.json)
+### STEP 10 — 파일 저장 / 불러오기 (state.json)
+
+```bash
+git checkout -b feature/file-io
+```
 
 **저장 위치:** 프로젝트 루트 `state.json` (UTF-8 인코딩)
 
@@ -299,19 +403,29 @@ git commit -m "refactor: QuizGame 클래스로 전체 구조 정리"
 ```
 
 **처리 규칙**
+
 - 파일 없음 → 기본 퀴즈 데이터로 시작
 - 파일 손상 → 안내 메시지 후 기본 데이터로 초기화
 - 모든 읽기/쓰기는 `try/except`로 처리
 
 ```bash
+git add .
 git commit -m "feat: state.json 파일 저장/불러오기 구현"
+git checkout main
+git merge feature/file-io
+git push origin main
 ```
 
 ---
 
-### STEP 12 — README.md 작성
+### STEP 11 — README.md 작성
+
+```bash
+git checkout -b feature/docs
+```
 
 **포함 항목**
+
 1. 프로젝트 개요
 2. 퀴즈 주제 및 선정 이유
 3. 실행 방법
@@ -320,13 +434,16 @@ git commit -m "feat: state.json 파일 저장/불러오기 구현"
 6. `state.json` 경로 / 역할 / 스키마 설명
 
 ```bash
+git add .
 git commit -m "docs: README.md 작성 완료"
+git checkout main
+git merge feature/docs
 git push origin main
 ```
 
 ---
 
-### STEP 13 — clone & pull 실습
+### STEP 12 — clone & pull 실습
 
 ```bash
 # 1. 별도 폴더에 저장소 복제
@@ -405,7 +522,6 @@ docs: README.md 작성 완료
 
 - [ ] 코드 업로드 완료
 - [ ] 의미 있는 커밋 10개 이상
-- [ ] 브랜치 생성 및 병합 1회 이상
+- [ ] 브랜치 생성 및 병합 1회 이상 (권장: 기능마다 브랜치 분리)
 - [ ] clone, pull 각 1회 이상
 - [ ] README.md 6개 항목 포함
-````
