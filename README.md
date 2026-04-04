@@ -131,7 +131,7 @@ git checkout -b feature/init
 
 ```bash
 git add .
-git commit -m "init: 프로젝트 초기 설정"
+git commit -m "init: uv 초기화 및 README.MD 추가"
 git checkout main
 git merge feature/init
 git push -u origin main
@@ -239,9 +239,9 @@ class Quiz:
 
 ```bash
 git add .
-git commit -m "feat: Quiz 클래스 정의"
+git commit -m "feat: Quiz 클래스 정의 및 CLI 초기화 OS 별 분기 처리 추가"
 git add .
-git commit -m "feat: 기본 퀴즈 데이터 5개 작성"
+git commit -m "feat: default quizzes 추가"
 git checkout main
 git merge feature/quiz-class
 git push origin main
