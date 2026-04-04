@@ -4,7 +4,6 @@ from quiz import Quiz
 
 class QuizGame:
     def __init__(self):
-        self.quizzes = []
         self.best_score = 0
         self.is_windows = os.name == "nt"  # 초기화 시 OS 한 번만 확인
         self.Quizzes = self.default_quizzes()  # 기본 탑재된 퀴즈 로드
@@ -83,7 +82,7 @@ class QuizGame:
 
       answer = self.input_number("정답 번호 (1~4) > ", 1, 4)
 
-      self.quizzes.append(Quiz(question, choices, answer))
+      self.Quizzes.append(Quiz(question, choices, answer))
       self.save()  # 즉시 저장
       print("퀴즈가 추가되었습니다.")
       self.show_menu()
@@ -92,9 +91,30 @@ class QuizGame:
         # 퀴즈 목록 출력
         pass
 
-    def show_score(self):
-        # 최고 점수 출력
-        pass
+    def show_list(self):
+      self.clear()
+      print("=== 퀴즈 목록 ===\n")
+
+      if not self.Quizzes:
+          print("등록된 퀴즈가 없습니다.")
+          input("\n엔터를 누르면 메뉴로 돌아갑니다.")
+          return self.show_menu()
+
+      for i, quiz in enumerate(self.Quizzes, start=1):
+          label = "[사용자 추가]" if quiz.is_custom else "[기본]"
+          print(f"[{i}] {label} {quiz.question}")
+          print(f"[{i}] {quiz.question}")
+          
+          for j, choice in enumerate(quiz.choices, start=1):
+              if j == quiz.answer:
+                  print(f"  {j}. {choice}  ← 정답")
+              else:
+                  print(f"  {j}. {choice}")
+          print()
+
+      print(f"총 {len(self.Quizzes)}개의 퀴즈가 있습니다.")
+      input("\n엔터를 누르면 메뉴로 돌아갑니다.")
+      self.show_menu()
 
     # --- 파일 입출력 ---
     def save(self):

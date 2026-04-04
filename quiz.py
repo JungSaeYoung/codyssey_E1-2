@@ -3,6 +3,7 @@ class Quiz:
         self.question = question   # str
         self.choices = choices     # list[str] (4개)
         self.answer = answer       # int (1~4)
+        self.is_custom = is_custom  # 기본: False, 사용자 추가: True
 
     def display(self):
         # 문제와 선택지를 출력
