@@ -1,5 +1,5 @@
 class Quiz:
-    def __init__(self, question, choices, answer):
+    def __init__(self, question, choices, answer, is_custom=False):
         self.question = question   # str
         self.choices = choices     # list[str] (4개)
         self.answer = answer       # int (1~4)
