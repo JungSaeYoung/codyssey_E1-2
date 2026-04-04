@@ -1,37 +1,41 @@
 import os
+import sys
 
 class QuizGame:
     def __init__(self):
-        self.quizzes = []      # list[Quiz]
-        self.best_score = 0    # int
+        self.quizzes = []
+        self.best_score = 0
+        self.is_windows = os.name == "nt"  # 초기화 시 OS 한 번만 확인
+
+    def clear(self):
+        if self.is_windows:
+            os.system("cls")
+        else:
+            sys.stdout.write("\033[2J\033[H")
+            sys.stdout.flush()
 
     # --- 진입점 ---
     def run(self):
-      # 전체 루프: 메뉴 출력 → 입력 → 기능 실행 반복
-      self.show_menu()
+        self.show_menu()
 
     # --- 메뉴 ---
     def show_menu(self):
-      # 메뉴 텍스트 출력
-      main_menu = "=== 퀴즈 게임 ===\n1. 퀴즈 풀기\n2. 퀴즈 추가\n3. 퀴즈 목록\n4. 점수 확인\n5. 종료"
-      print(main_menu)
-      main_input = input("선택 > ").strip()
+        self.clear()
+        main_menu = "=== 퀴즈 게임 ===\n1. 퀴즈 풀기\n2. 퀴즈 추가\n3. 퀴즈 목록\n4. 점수 확인\n5. 종료"
+        print(main_menu)
+        main_input = input("선택 > ").strip()
 
-      if main_input.isdigit():
-          number = int(main_input)
-      else:
-          os.system("cls" if os.name == "nt" else "clear")
-          print("***숫자만 입력하세요.***")
+        if not main_input.isdigit():
+            print("***숫자만 입력하세요.***")
+            return self.show_menu()
 
-      if main_input not in ["1", "2", "3", "4", "5"]:
-          os.system("cls" if os.name == "nt" else "clear")
-          print("***잘못된 범위의 숫자입니다. 다시 입력해주세요.***")
-          return self.show_menu()
-      
-      return self.handle_menu(number)
+        if main_input not in ["1", "2", "3", "4", "5"]:
+            print("***잘못된 범위의 숫자입니다. 다시 입력해주세요.***")
+            return self.show_menu()
+
+        return self.handle_menu(int(main_input))
 
     def handle_menu(self, choice):
-        # 선택 번호에 따라 기능 분기
         if choice == 1:
             self.play()
         elif choice == 2:
