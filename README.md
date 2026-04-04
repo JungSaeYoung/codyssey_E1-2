@@ -1,0 +1,411 @@
+# 퀴즈 게임 프로젝트
+
+## 목차
+1. [환경 설정](#환경-설정)
+2. [단계별 구현 순서](#단계별-구현-순서)
+3. [커밋 메시지 컨벤션](#커밋-메시지-컨벤션)
+4. [제출 체크리스트](#제출-체크리스트)
+
+---
+
+## 환경 설정
+
+### 1. uv 설치
+
+```bash
+# macOS / Linux
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Windows (PowerShell)
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+```
+
+### 2. 프로젝트 초기화
+
+```bash
+uv init .
+```
+
+### 3. Python 버전 고정
+
+```bash
+uv python pin 3.11
+```
+
+### 4. 가상환경 생성 및 활성화
+
+```bash
+uv venv
+
+# macOS / Linux
+source .venv/bin/activate
+
+# Windows (PowerShell)
+.venv\Scripts\activate
+```
+
+### 5. 프로그램 실행
+
+```bash
+uv run main.py
+```
+
+### 파일 구조
+
+```
+프로젝트 루트/
+├── .venv/            # 가상환경 (git 제외)
+├── .python-version   # Python 버전 고정
+├── pyproject.toml    # 프로젝트 설정
+├── main.py           # 메인 실행 파일
+├── state.json        # 퀴즈/점수 저장 파일 (자동 생성)
+├── .gitignore
+└── README.md
+```
+
+### .gitignore 설정
+
+```
+.venv/
+__pycache__/
+*.pyc
+.python-version
+```
+
+---
+
+## 단계별 구현 순서
+
+### STEP 1 — Git 저장소 설정
+
+**작업 내용**
+- GitHub에 새 저장소 생성
+- 로컬에 저장소 초기화 (`git init`)
+- `.gitignore`, `README.md` 파일 생성
+
+```bash
+git add .
+git commit -m "init: 프로젝트 초기 설정"
+git push -u origin main
+```
+
+---
+
+### STEP 2 — 메뉴 기능 구현
+
+**요구사항**
+- 실행 시 메뉴가 출력된다
+- 번호를 입력하면 해당 기능으로 이동한다
+- 종료 기능이 있다
+- 잘못된 입력 시 안내 메시지를 출력하고 재입력을 받는다
+
+**출력 예시**
+
+```
+=== 퀴즈 게임 ===
+1. 퀴즈 풀기
+2. 퀴즈 추가
+3. 퀴즈 목록
+4. 점수 확인
+5. 종료
+선택 >
+```
+
+```bash
+git commit -m "feat: 메인 메뉴 출력 및 입력 처리 구현"
+```
+
+---
+
+### STEP 3 — 공통 입력 / 예외 처리 기준 적용
+
+모든 입력이 필요한 곳에 아래 기준을 일관되게 적용합니다.
+
+**숫자 입력 처리**
+
+| 케이스 | 처리 방법 |
+|---|---|
+| 앞뒤 공백 (예: `" 1 "`) | `.strip()` 후 처리 |
+| 문자 입력 (예: `"abc"`) | 안내 메시지 출력 후 재입력 |
+| 범위 밖 숫자 (예: 메뉴에서 `9`) | 안내 메시지 출력 후 재입력 |
+| 빈 입력 (그냥 Enter) | 안내 메시지 출력 후 재입력 |
+
+**프로그램 전체 예외 처리**
+
+| 상황 | 처리 방법 |
+|---|---|
+| `Ctrl+C` (KeyboardInterrupt) | 안내 메시지 출력 후 저장하고 종료 |
+| `EOF` (EOFError) | 동일하게 안전 종료 |
+| `state.json` 없음 | 기본 퀴즈 데이터로 실행 |
+| `state.json` 손상 | 안내 메시지 출력 후 기본 데이터로 초기화 |
+
+---
+
+### STEP 4 — Quiz 클래스 정의
+
+**속성**
+
+| 속성 | 설명 |
+|---|---|
+| `question` | 문제 텍스트 |
+| `choices` | 선택지 4개 (리스트) |
+| `answer` | 정답 번호 (1~4) |
+
+**메서드**
+- `display()` — 문제와 선택지 출력
+- `check(user_answer)` — 정답 여부 반환
+
+```python
+class Quiz:
+    def __init__(self, question, choices, answer):
+        self.question = question
+        self.choices = choices  # ["①", "②", "③", "④"]
+        self.answer = answer    # 1~4
+
+    def display(self):
+        pass
+
+    def check(self, user_answer):
+        pass
+```
+
+```bash
+git commit -m "feat: Quiz 클래스 정의"
+```
+
+---
+
+### STEP 5 — 기본 퀴즈 데이터 작성
+
+**요구사항**
+- 본인이 직접 고른 주제의 퀴즈 5개 이상 작성
+- 각 퀴즈는 문제 + 선택지 4개 + 정답 번호 포함
+- `Quiz` 클래스의 인스턴스로 생성
+
+```bash
+git commit -m "feat: 기본 퀴즈 데이터 5개 작성"
+```
+
+---
+
+### STEP 6 — 퀴즈 풀기 기능 구현 (브랜치 활용)
+
+```bash
+git checkout -b feature/quiz-play
+```
+
+**요구사항**
+- 저장된 퀴즈를 순서대로 출제한다
+- 사용자가 1~4 중 번호로 정답을 입력한다
+- 정답/오답 여부를 즉시 알려준다
+- 모든 문제를 풀면 최종 점수를 표시한다
+- 퀴즈가 없을 경우 안내 메시지를 출력한다
+
+```bash
+git commit -m "feat: 퀴즈 풀기 기능 구현"
+git checkout main
+git merge feature/quiz-play
+```
+
+---
+
+### STEP 7 — 퀴즈 추가 기능 구현
+
+**입력 순서**
+1. 문제 입력
+2. 선택지 4개 입력
+3. 정답 번호 입력 (1~4)
+
+**요구사항**
+- 잘못된 입력 시 STEP 3의 공통 처리 기준 적용
+- 추가한 퀴즈를 즉시 `state.json`에 저장
+
+```bash
+git commit -m "feat: 퀴즈 추가 기능 구현"
+```
+
+---
+
+### STEP 8 — 퀴즈 목록 기능 구현
+
+**요구사항**
+- 번호와 문제를 목록으로 출력한다
+- 퀴즈가 없을 경우 안내 메시지를 출력한다
+
+```bash
+git commit -m "feat: 퀴즈 목록 출력 기능 구현"
+```
+
+---
+
+### STEP 9 — 점수 확인 기능 구현
+
+**요구사항**
+- 퀴즈를 풀 때마다 기존 최고 점수와 비교한다
+- 더 높으면 최고 점수를 갱신하고 `state.json`에 저장한다
+- 메뉴에서 최고 점수를 확인할 수 있다
+- 아직 퀴즈를 풀지 않은 경우 안내 메시지를 출력한다
+
+```bash
+git commit -m "feat: 최고 점수 저장 및 확인 기능 구현"
+```
+
+---
+
+### STEP 10 — QuizGame 클래스로 코드 정리
+
+**속성**
+
+| 속성 | 설명 |
+|---|---|
+| `quizzes` | Quiz 인스턴스 목록 |
+| `best_score` | 최고 점수 |
+
+**메서드**
+
+| 메서드 | 역할 |
+|---|---|
+| `show_menu()` | 메뉴 출력 |
+| `play()` | 퀴즈 풀기 |
+| `add_quiz()` | 퀴즈 추가 |
+| `show_list()` | 목록 출력 |
+| `show_score()` | 점수 확인 |
+| `save()` | 파일 저장 |
+| `load()` | 파일 불러오기 |
+
+```bash
+git commit -m "refactor: QuizGame 클래스로 전체 구조 정리"
+```
+
+---
+
+### STEP 11 — 파일 저장 / 불러오기 (state.json)
+
+**저장 위치:** 프로젝트 루트 `state.json` (UTF-8 인코딩)
+
+**스키마**
+
+```json
+{
+  "quizzes": [
+    {
+      "question": "문제 텍스트",
+      "choices": ["선택1", "선택2", "선택3", "선택4"],
+      "answer": 1
+    }
+  ],
+  "best_score": 5
+}
+```
+
+**처리 규칙**
+- 파일 없음 → 기본 퀴즈 데이터로 시작
+- 파일 손상 → 안내 메시지 후 기본 데이터로 초기화
+- 모든 읽기/쓰기는 `try/except`로 처리
+
+```bash
+git commit -m "feat: state.json 파일 저장/불러오기 구현"
+```
+
+---
+
+### STEP 12 — README.md 작성
+
+**포함 항목**
+1. 프로젝트 개요
+2. 퀴즈 주제 및 선정 이유
+3. 실행 방법
+4. 기능 목록
+5. 파일 구조
+6. `state.json` 경로 / 역할 / 스키마 설명
+
+```bash
+git commit -m "docs: README.md 작성 완료"
+git push origin main
+```
+
+---
+
+### STEP 13 — clone & pull 실습
+
+```bash
+# 1. 별도 폴더에 저장소 복제
+git clone https://github.com/본인계정/저장소명.git 새폴더명
+
+# 2. 복제된 폴더에서 변경 후 push
+cd 새폴더명
+git add .
+git commit -m "docs: clone 실습 - README 한 줄 추가"
+git push
+
+# 3. 원래 폴더로 돌아와서 pull
+cd ../기존폴더명
+git pull origin main
+```
+
+---
+
+## 커밋 메시지 컨벤션
+
+### 기본 구조
+
+```
+type: 제목 (50자 이내)
+```
+
+### type 종류
+
+| type | 언제 쓰나 |
+|---|---|
+| `feat` | 새 기능 추가 |
+| `fix` | 버그 수정 |
+| `docs` | README 등 문서 수정 |
+| `refactor` | 기능 변화 없이 코드 구조 개선 |
+| `style` | 들여쓰기, 공백 등 포맷만 변경 |
+| `test` | 테스트 코드 추가/수정 |
+| `chore` | 빌드 설정, .gitignore 등 기타 |
+| `init` | 프로젝트 최초 설정 |
+
+### 이 프로젝트 커밋 예시
+
+```
+init: 프로젝트 초기 설정 및 .gitignore 추가
+feat: 메인 메뉴 출력 및 입력 처리 구현
+feat: Quiz 클래스 정의
+feat: 기본 퀴즈 데이터 5개 작성
+feat: 퀴즈 풀기 기능 구현
+feat: 퀴즈 추가 기능 구현
+feat: 퀴즈 목록 출력 기능 구현
+feat: 최고 점수 저장 및 확인 기능 구현
+feat: state.json 파일 저장/불러오기 구현
+refactor: QuizGame 클래스로 전체 구조 정리
+fix: 잘못된 입력 예외 처리 누락 수정
+docs: README.md 작성 완료
+```
+
+### 제목 작성 규칙
+
+- type은 소문자로 작성한다 — `Feat` ❌ `feat` ✅
+- 마침표를 붙이지 않는다 — `메뉴 구현.` ❌ `메뉴 구현` ✅
+- 무엇을 했는지 명확하게 작성한다 — `수정함` ❌ `입력 예외 처리 누락 수정` ✅
+
+---
+
+## 제출 체크리스트
+
+### 프로그램
+
+- [ ] 메뉴 → 퀴즈 풀기 / 추가 / 목록 / 점수 / 종료 동작
+- [ ] 퀴즈 5개 이상 포함
+- [ ] 재실행해도 퀴즈와 점수 유지 (`state.json`)
+- [ ] `Quiz`, `QuizGame` 클래스 2개 이상 정의
+- [ ] 예외 처리 적용 (잘못된 입력, Ctrl+C, 파일 오류)
+
+### GitHub
+
+- [ ] 코드 업로드 완료
+- [ ] 의미 있는 커밋 10개 이상
+- [ ] 브랜치 생성 및 병합 1회 이상
+- [ ] clone, pull 각 1회 이상
+- [ ] README.md 6개 항목 포함
+````
