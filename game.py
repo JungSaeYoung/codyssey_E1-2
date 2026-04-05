@@ -36,6 +36,7 @@ class QuizGame:
             self.show_score()
         elif choice == 5:
             print("게임을 종료합니다.")
+            self.save()  # 종료 전 상태 저장
             exit()
 
     # --- 기능 ---
