@@ -8,16 +8,19 @@ class QuizGame:
         self.best_score = 0
         self.is_windows = os.name == "nt"  # 초기화 시 OS 한 번만 확인
         self.quizzes = self.default_quizzes()  # 기본 탑재된 퀴즈 로드
+        self.warningMessage = self.load()  # 게임 실행 후 상태 불러오기
 
     # --- 진입점 ---
     def run(self):
-        self.show_menu()
+        self.show_menu(warningMessage=self.warningMessage)
 
     # --- 메뉴 ---
-    def show_menu(self):
+    def show_menu(self, warningMessage=None):
         self.clear()
         main_menu = "=== 퀴즈 게임 ===\n1. 퀴즈 풀기\n2. 퀴즈 추가\n3. 퀴즈 목록\n4. 점수 확인\n5. 종료"
         print(main_menu)
+        if warningMessage:
+            print(warningMessage)
         main_input = self.input_number("메뉴 번호를 입력하세요 > ", 1, 5)
 
         return self.handle_menu(int(main_input))
@@ -83,7 +86,7 @@ class QuizGame:
 
       answer = self.input_number("정답 번호 (1~4) > ", 1, 4)
 
-      self.quizzes.append(Quiz(question, choices, answer))
+      self.quizzes.append(Quiz(question, choices, answer, is_custom=True))
       self.save()  # 즉시 저장
       print("퀴즈가 추가되었습니다.")
       self.show_menu()
@@ -142,10 +145,11 @@ class QuizGame:
                 self.quizzes = [Quiz.from_dict(q) for q in data["quizzes"]]
                 self.best_score = data["best_score"]
         except FileNotFoundError:
-            self.quizzes = self._default_quizzes()
+            self.quizzes = self.default_quizzes()
         except (json.JSONDecodeError, KeyError):
             print("데이터 파일이 손상되었습니다. 기본 데이터로 초기화합니다.")
-            self.quizzes = self._default_quizzes()
+            self.quizzes = self.default_quizzes()
+            return "!!warning!! 데이터 파일이 손상되어 초기화되었습니다. !!"
 
     # --- 유틸리티 ---
     # 숫자 입력 시 예외 처리를 위해 input 함수 래핑
