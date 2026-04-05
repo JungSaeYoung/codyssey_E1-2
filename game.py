@@ -1,12 +1,13 @@
 import os
 import sys
 from quiz import Quiz
+import json
 
 class QuizGame:
     def __init__(self):
         self.best_score = 0
         self.is_windows = os.name == "nt"  # 초기화 시 OS 한 번만 확인
-        self.Quizzes = self.default_quizzes()  # 기본 탑재된 퀴즈 로드
+        self.quizzes = self.default_quizzes()  # 기본 탑재된 퀴즈 로드
 
     # --- 진입점 ---
     def run(self):
@@ -39,15 +40,15 @@ class QuizGame:
       self.clear()
       print("=== 퀴즈 풀기 ===\n")
 
-      if not self.Quizzes:
+      if not self.quizzes:
           print("등록된 퀴즈가 없습니다.")
           input("엔터를 누르면 메뉴로 돌아갑니다.")
           return self.show_menu()
 
       score = 0
 
-      for i, quiz in enumerate(self.Quizzes):
-          print(f"[{i + 1} / {len(self.Quizzes)}]")
+      for i, quiz in enumerate(self.quizzes):
+          print(f"[{i + 1} / {len(self.quizzes)}]")
           quiz.display()
 
           user_answer = self.input_number("정답 번호 > ", 1, 4)
@@ -59,7 +60,7 @@ class QuizGame:
               print(f"오답입니다. 정답은 {quiz.answer}번입니다.\n")
 
       # 최종 결과
-      print(f"최종 점수: {score} / {len(self.Quizzes)}")
+      print(f"최종 점수: {score} / {len(self.quizzes)}")
 
       if score > self.best_score:
           self.best_score = score
@@ -82,7 +83,7 @@ class QuizGame:
 
       answer = self.input_number("정답 번호 (1~4) > ", 1, 4)
 
-      self.Quizzes.append(Quiz(question, choices, answer))
+      self.quizzes.append(Quiz(question, choices, answer))
       self.save()  # 즉시 저장
       print("퀴즈가 추가되었습니다.")
       self.show_menu()
@@ -95,16 +96,16 @@ class QuizGame:
       self.clear()
       print("=== 퀴즈 목록 ===\n")
 
-      if not self.Quizzes:
+      if not self.quizzes:
           print("등록된 퀴즈가 없습니다.")
           input("\n엔터를 누르면 메뉴로 돌아갑니다.")
           return self.show_menu()
 
-      for i, quiz in enumerate(self.Quizzes, start=1):
+      for i, quiz in enumerate(self.quizzes, start=1):
           label = "[사용자 추가]" if quiz.is_custom else "[기본]"
           print(f"[{i}] {label} {quiz.question}")
           print(f"[{i}] {quiz.question}")
-          
+
           for j, choice in enumerate(quiz.choices, start=1):
               if j == quiz.answer:
                   print(f"  {j}. {choice}  ← 정답")
@@ -112,19 +113,37 @@ class QuizGame:
                   print(f"  {j}. {choice}")
           print()
 
-      print(f"총 {len(self.Quizzes)}개의 퀴즈가 있습니다.")
+      print(f"총 {len(self.quizzes)}개의 퀴즈가 있습니다.")
       input("\n엔터를 누르면 메뉴로 돌아갑니다.")
       self.show_menu()
 
     # --- 파일 입출력 ---
+    FILE_PATH = "state.json"
+
     def save(self):
-        # state.json에 저장
-        pass
+        try:
+            data = {
+                "quizzes": [quiz.to_dict() for quiz in self.quizzes],
+                "best_score": self.best_score
+            }
+            with open(FILE_PATH, "w", encoding="utf-8") as f:
+                json.dump(data, f, ensure_ascii=False, indent=2)
+                # ensure_ascii=False — 한글이 유니코드 이스케이프(\uc608\uc2dc) 대신 한글 그대로 저장됩니다.
+        except OSError:
+            print("파일 저장에 실패했습니다.")
 
     def load(self):
-        # state.json에서 불러오기
-        pass
-    
+        try:
+            with open(FILE_PATH, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                self.quizzes = [Quiz.from_dict(q) for q in data["quizzes"]]
+                self.best_score = data["best_score"]
+        except FileNotFoundError:
+            self.quizzes = self._default_quizzes()
+        except (json.JSONDecodeError, KeyError):
+            print("데이터 파일이 손상되었습니다. 기본 데이터로 초기화합니다.")
+            self.quizzes = self._default_quizzes()
+
     # --- 유틸리티 ---
     # 숫자 입력 시 예외 처리를 위해 input 함수 래핑
     def input_number(self, prompt, min_val, max_val):
