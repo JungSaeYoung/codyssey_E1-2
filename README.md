@@ -344,65 +344,7 @@ git push origin main
 
 ---
 
-### STEP 8 — 점수 확인 기능 구현
-
-```bash
-git checkout -b feature/score
-```
-
-**요구사항**
-
-- 퀴즈를 풀 때마다 기존 최고 점수와 비교한다
-- 더 높으면 최고 점수를 갱신하고 `state.json`에 저장한다
-- 메뉴에서 최고 점수를 확인할 수 있다
-- 아직 퀴즈를 풀지 않은 경우 안내 메시지를 출력한다
-
-```bash
-git add .
-git commit -m "feat: 최고 점수 저장 및 확인 기능 구현"
-git checkout main
-git merge feature/score
-git push origin main
-```
-
----
-
-### STEP 9 — QuizGame 클래스로 코드 정리
-
-```bash
-git checkout -b feature/quiz-game
-```
-
-**속성**
-
-| 속성 | 설명 |
-|---|---|
-| `quizzes` | Quiz 인스턴스 목록 |
-| `best_score` | 최고 점수 |
-
-**메서드**
-
-| 메서드 | 역할 |
-|---|---|
-| `show_menu()` | 메뉴 출력 |
-| `play()` | 퀴즈 풀기 |
-| `add_quiz()` | 퀴즈 추가 |
-| `show_list()` | 목록 출력 |
-| `show_score()` | 점수 확인 |
-| `save()` | 파일 저장 |
-| `load()` | 파일 불러오기 |
-
-```bash
-git add .
-git commit -m "refactor: QuizGame 클래스로 전체 구조 정리"
-git checkout main
-git merge feature/quiz-game
-git push origin main
-```
-
----
-
-### STEP 10 — 파일 저장 / 불러오기 (state.json)
+### STEP 8 — 파일 저장 / 불러오기 (state.json)
 
 ```bash
 git checkout -b feature/file-io
@@ -438,10 +380,32 @@ git checkout main
 git merge feature/file-io
 git push origin main
 ```
+---
+
+### STEP 9 — 점수 확인 기능 구현
+
+```bash
+git checkout -b feature/score
+```
+
+**요구사항**
+
+- 퀴즈를 풀 때마다 기존 최고 점수와 비교한다
+- 더 높으면 최고 점수를 갱신하고 `state.json`에 저장한다
+- 메뉴에서 최고 점수를 확인할 수 있다
+- 아직 퀴즈를 풀지 않은 경우 안내 메시지를 출력한다
+
+```bash
+git add .
+git commit -m "feat: 최고 점수 저장 및 확인 기능 구현"
+git checkout main
+git merge feature/score
+git push origin main
+```
 
 ---
 
-### STEP 11 — README.md 작성
+### STEP 10 — README.md 작성
 
 ```bash
 git checkout -b feature/docs
@@ -466,7 +430,7 @@ git push origin main
 
 ---
 
-### STEP 12 — clone & pull 실습
+### STEP 11 — clone & pull 실습
 
 ```bash
 # 1. 별도 폴더에 저장소 복제
