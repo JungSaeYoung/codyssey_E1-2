@@ -126,7 +126,7 @@ class QuizGame:
                 "quizzes": [quiz.to_dict() for quiz in self.quizzes],
                 "best_score": self.best_score
             }
-            with open(FILE_PATH, "w", encoding="utf-8") as f:
+            with open(self.FILE_PATH, "w", encoding="utf-8") as f:
                 json.dump(data, f, ensure_ascii=False, indent=2)
                 # ensure_ascii=False — 한글이 유니코드 이스케이프(\uc608\uc2dc) 대신 한글 그대로 저장됩니다.
         except OSError:
@@ -134,7 +134,7 @@ class QuizGame:
 
     def load(self):
         try:
-            with open(FILE_PATH, "r", encoding="utf-8") as f:
+            with open(self.FILE_PATH, "r", encoding="utf-8") as f:
                 data = json.load(f)
                 self.quizzes = [Quiz.from_dict(q) for q in data["quizzes"]]
                 self.best_score = data["best_score"]
