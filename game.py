@@ -89,10 +89,6 @@ class QuizGame:
       self.show_menu()
 
     def show_list(self):
-        # 퀴즈 목록 출력
-        pass
-
-    def show_list(self):
       self.clear()
       print("=== 퀴즈 목록 ===\n")
 
@@ -114,6 +110,13 @@ class QuizGame:
           print()
 
       print(f"총 {len(self.quizzes)}개의 퀴즈가 있습니다.")
+      input("\n엔터를 누르면 메뉴로 돌아갑니다.")
+      self.show_menu()
+
+    def show_score(self):
+      self.clear()
+      print("=== 점수 확인 ===\n")
+      print(f"최고 점수: {self.best_score} / {len(self.quizzes)}")
       input("\n엔터를 누르면 메뉴로 돌아갑니다.")
       self.show_menu()
 
