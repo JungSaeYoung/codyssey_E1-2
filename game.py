@@ -94,7 +94,9 @@ class QuizGame:
 
         answer = self.input_number("정답 번호 (1~4) > ", 1, 4)
 
-        self.quizzes.append(Quiz(question, choices, answer, is_custom=True))
+        hint = input("힌트를 입력하세요 (선택 사항, 엔터로 건너뛰기) > ").strip() or None
+
+        self.quizzes.append(Quiz(question, choices, answer, hint=hint, is_custom=True))
         self.save()  # 즉시 저장
         print("퀴즈가 추가되었습니다.")
         self.show_menu()
