@@ -60,6 +60,8 @@ uv run main.py
 ├── .python-version   # Python 버전 고정
 ├── pyproject.toml    # 프로젝트 설정
 ├── main.py           # 메인 실행 파일
+├── game.py           # QuizGame 클래스 (게임 로직)
+├── quiz.py           # Quiz 클래스 (퀴즈 모델)
 ├── state.json        # 퀴즈/점수 저장 파일 (자동 생성)
 ├── .gitignore
 └── README.md
@@ -158,10 +160,11 @@ git checkout -b feature/menu
 === 퀴즈 게임 ===
 1. 퀴즈 풀기
 2. 퀴즈 추가
-3. 퀴즈 목록
-4. 점수 확인
-5. 종료
-선택 >
+3. 퀴즈 삭제
+4. 퀴즈 목록
+5. 플레이 기록 확인
+6. 종료
+메뉴 번호를 입력하세요 >
 ```
 
 ```bash
@@ -219,10 +222,12 @@ git checkout -b feature/quiz-class
 
 ```python
 class Quiz:
-    def __init__(self, question, choices, answer):
+    def __init__(self, question, choices, answer, hint=None, is_custom=False):
         self.question = question
-        self.choices = choices  # ["선택1", "선택2", "선택3", "선택4"]
-        self.answer = answer    # 1~4
+        self.choices = choices    # ["선택1", "선택2", "선택3", "선택4"]
+        self.answer = answer      # 1~4
+        self.hint = hint
+        self.is_custom = is_custom  # 기본: False, 사용자 추가: True
 
     def display(self):
         pass
@@ -257,10 +262,13 @@ git checkout -b feature/quiz-play
 
 **요구사항**
 
-- 저장된 퀴즈를 순서대로 출제한다
+- 풀 문제 수를 선택할 수 있다
+- 퀴즈를 랜덤 순서로 출제한다
 - 사용자가 1~4 중 번호로 정답을 입력한다
 - 정답/오답 여부를 즉시 알려준다
-- 모든 문제를 풀면 최종 점수를 표시한다
+- 문제별 소요 시간을 측정한다
+- 모든 문제를 풀면 최종 점수, 정답률, 플레이타임, 평균 시간을 표시한다
+- 최고 점수 갱신 시 알림을 출력한다
 - 퀴즈가 없을 경우 안내 메시지를 출력한다
 
 ```bash
@@ -273,26 +281,27 @@ git push origin main
 
 play() 호출
 │
-├── 퀴즈 없음? → 안내 메시지 → show_menu()
+├── 퀴즈 없음? → 안내 메시지 → 메뉴로 복귀
 │
 └── 퀴즈 있음
     │
-    ├── score = 0
+    ├── 풀 문제 수 선택
+    ├── score = 0, 퀴즈 랜덤 셔플
     │
-    └── for quiz in self.quizzes
+    └── for quiz in shuffled_quizzes
         │
         ├── quiz.display()         # 문제 + 선택지 출력
-        ├── input_number(1~4)      # 정답 입력
+        ├── input_number(1~4)      # 정답 입력 + 소요 시간 측정
         ├── quiz.check(answer)
         │   ├── 정답 → "정답입니다!" + score += 1
         │   └── 오답 → "오답입니다. 정답은 N번입니다."
         │
         └── 모든 문제 완료
             │
-            ├── 최종 점수 출력
+            ├── 최종 점수, 정답률, 플레이타임, 평균 시간 출력
             ├── best_score 갱신 여부 확인
-            ├── save()
-            └── show_menu()
+            ├── history에 기록 추가
+            └── save()
 
 ---
 
@@ -307,6 +316,7 @@ git checkout -b feature/quiz-add
 1. 문제 입력
 2. 선택지 4개 입력
 3. 정답 번호 입력 (1~4)
+4. 힌트 입력 (선택 사항, 엔터로 건너뛰기)
 
 **요구사항**
 
@@ -360,10 +370,22 @@ git checkout -b feature/file-io
     {
       "question": "문제 텍스트",
       "choices": ["선택1", "선택2", "선택3", "선택4"],
-      "answer": 1
+      "answer": 1,
+      "hint": "힌트 텍스트 또는 null",
+      "is_custom": false
     }
   ],
-  "best_score": 5
+  "best_score": 5,
+  "history": [
+    {
+      "date": "2026-04-07 04:50:26",
+      "total": 5,
+      "score": 2,
+      "playtime": 1.7,
+      "avg_time": 0.3,
+      "accuracy": 40.0
+    }
+  ]
 }
 ```
 
@@ -449,6 +471,43 @@ git pull origin main
 
 ---
 
+### STEP 12 — 다른 환경에서 가상환경 설정
+
+다른 PC나 환경에서 이 프로젝트를 클론한 뒤, 가상환경을 새로 생성해야 합니다.
+`.venv/` 폴더는 `.gitignore`에 포함되어 있으므로 저장소에 포함되지 않습니다.
+
+```bash
+# 1. 저장소 클론
+git clone https://github.com/본인계정/저장소명.git
+cd 저장소명
+
+# 2. uv가 설치되어 있지 않다면 먼저 설치
+# macOS / Linux
+curl -LsSf https://astral.sh/uv/install.sh | sh
+# Windows (PowerShell)
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+
+# 3. 가상환경 생성 (.python-version에 고정된 버전으로 자동 설정)
+uv venv
+
+# 4. 가상환경 활성화
+# macOS / Linux
+source .venv/bin/activate
+# Windows (PowerShell)
+.venv\Scripts\activate
+
+# 5. 의존성 설치 (pyproject.toml 기준)
+uv sync
+
+# 6. 프로그램 실행
+uv run main.py
+```
+
+> **참고:** `uv sync`는 `pyproject.toml`에 명시된 의존성을 가상환경에 설치합니다.
+> 현재 이 프로젝트는 외부 패키지 의존성이 없으므로, `uv venv` 후 바로 `uv run main.py`로 실행해도 됩니다.
+
+---
+
 ## 커밋 메시지 컨벤션
 
 ### 기본 구조
@@ -495,61 +554,20 @@ docs: README.md 작성 완료
 
 ---
 
-## 코드 리뷰
+## 코드 리뷰 (수정 완료)
 
-### 예외 처리 추가가 필요한 부분
+### 예외 처리 — 수정 완료
 
-#### 1. `add_quiz` - 빈 입력 검증 없음 (`game.py:123-128`)
-`question`과 `choices`에 빈 문자열이 그대로 저장된다. `.strip()` 후 빈 값 체크가 필요하다.
+1. **`add_quiz` - 빈 입력 검증** — 빈 문제 입력 시 재입력 요구, 빈 정답 선택지 방어 추가
+2. **`from_dict` - `is_custom` 키 누락 대응** — `if "is_custom" in data`로 방어 처리
+3. **`load` - 파일 손상 시 처리** — 손상된 `state.json` 삭제 후 초기화
+4. **`from_dict` - 선택지/정답 유효성 검증** — 선택지 4개, 정답 번호 1~4 범위 검증 추가
 
-#### 2. `from_dict` - `is_custom` 키 누락 대응 없음 (`quiz.py:42`)
-`hint`은 `if "hint" in data`로 방어하지만, `is_custom`은 `data["is_custom"]`으로 직접 접근한다. 이전 버전 `state.json`에 해당 키가 없으면 `KeyError`가 발생한다.
-```python
-is_custom=data.get("is_custom", False)
-```
+### 리팩터링 — 수정 완료
 
-#### 3. load - 파일 손상 시 손상 파일이 남아있음 (game.py:191-193)
-JSON 파싱 실패 시 퀴즈를 초기화하지만 손상된 state.json은 그대로 남는다. 다음 실행 때도 같은 경고가 반복된다. 초기화 후 save()를 호출하거나 파일을 삭제해야 한다.
-
-### 리팩터링이 필요한 부분
-
-#### 1. from_dict 중복 정의 (quiz.py:34-55)
-from_dict 메서드가 두 번 정의되어 있다. 뒤의 것이 앞의 것을 덮어쓰므로 첫 번째는 죽은 코드이다. 하나를 삭제해야 한다.
-
-#### 2. 재귀 기반 메뉴 흐름 (RecursionError 위험)
-play(), add_quiz(), delete_quiz(), show_list(), show_score() 모두 끝에서 self.show_menu()를 재귀 호출한다. 오래 플레이하면 Python의 재귀 제한(기본 1000)에 도달해 RecursionError가 발생한다.
-
-수정 방향: run()에서 while 루프로 전환:
-
-```python
-def run(self):
-    warning = self.warningMessage
-    while True:
-        choice = self.show_menu(warningMessage=warning)
-        warning = None
-        self.handle_menu(choice)
-```
-각 메서드 끝의 self.show_menu() 호출을 모두 제거한다.
-
-#### 3. show_list 문제 중복 출력 (game.py:175-176)
-```python
-print(f"[{i}] {label} {quiz.question}")  # label 포함
-print(f"[{i}] {quiz.question}")          # label 없이 또 출력
-```
-한 줄을 삭제해야 한다.
-
-#### 4. 변수명 PEP 8 위반 (game.py:14)
-warningMessage는 camelCase이다. Python 컨벤션에 따라 warning_message로 변경하는 것이 좋다.
-
-#### 5. quiz.py의 미사용 필드 (quiz.py:8)
-self.record = None은 어디서도 사용되지 않는다. 현재 기록은 game.py의 self.history에서 관리되므로 제거 가능하다.
-
-#### 6. display 메서드의 표현식 문 (quiz.py:15)
-
-print(f"힌트: {self.hint}") if self.hint else None  # 표현식을 문으로 사용
-관용적으로는 if 문으로 작성하는 것이 낫다:
-
-```python
-if self.hint:
-    print(f"힌트: {self.hint}")
-```
+1. **`from_dict` 중복 정의** — 중복 제거, 하나만 유지
+2. **재귀 메뉴 → `while` 루프** — `run()`에서 루프로 전환, 각 메서드의 `show_menu()` 재귀 호출 제거
+3. **`show_list` 중복 출력** — 중복 `print` 제거
+4. **변수명 PEP 8** — `warningMessage` → `warning_message`
+5. **미사용 필드** — `quiz.py`의 `self.record` 제거
+6. **`display` 표현식 문** — `if` 문으로 변경
