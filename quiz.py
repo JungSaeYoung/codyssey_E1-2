@@ -5,6 +5,10 @@ class Quiz:
         self.answer = answer       # int (1~4)
         self.hint = hint
         self.is_custom = is_custom  # 기본: False, 사용자 추가: True
+        # self는 클래스의 인스턴스 자신을 가리키는 예약어 
+        # __init__ 메서드에서 self를 사용하여 인스턴스의 속성을 초기화
+        # 예를 들어, self.question = question은 인스턴스의 question 속성을 초기화하는 역할
+        # self가 없으면 인스턴스의 속성을 초기화할 수 없고, 클래스의 메서드에서 인스턴스에 접근할 수 없게 됩
 
     def display(self):
         # 문제와 선택지를 출력
