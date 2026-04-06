@@ -5,6 +5,7 @@ class Quiz:
         self.answer = answer       # int (1~4)
         self.hint = hint
         self.is_custom = is_custom  # 기본: False, 사용자 추가: True
+        self.record = None  # 플레이 기록 (맞춘 시간, 시도 횟수 등)
 
     def display(self):
         # 문제와 선택지를 출력

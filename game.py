@@ -3,12 +3,14 @@ import sys
 from quiz import Quiz
 import json
 import random
+import datetime
 
 class QuizGame:
     def __init__(self):
         self.best_score = 0
         self.is_windows = os.name == "nt"  # 초기화 시 OS 한 번만 확인
         self.quizzes = self.default_quizzes()  # 기본 탑재된 퀴즈 로드
+        self.history = []  # 플레이 기록 (게임 결과 저장용)
         self.warningMessage = self.load()  # 게임 실행 후 상태 불러오기
 
     # --- 진입점 ---
@@ -18,7 +20,7 @@ class QuizGame:
     # --- 메뉴 ---
     def show_menu(self, warningMessage=None):
         self.clear()
-        main_menu = "=== 퀴즈 게임 ===\n1. 퀴즈 풀기\n2. 퀴즈 추가\n3. 퀴즈 삭제\n4. 퀴즈 목록\n5. 점수 확인\n6. 종료"
+        main_menu = "=== 퀴즈 게임 ===\n1. 퀴즈 풀기\n2. 퀴즈 추가\n3. 퀴즈 삭제\n4. 퀴즈 목록\n5. 플레이 기록 확인\n6. 종료"
         print(main_menu)
         if warningMessage:
             print(warningMessage)
@@ -58,13 +60,22 @@ class QuizGame:
         count = self.input_number(f"몇 문제를 풀겠습니까? (1~{total}) > ", 1, total)
 
         score = 0
+        question_times = []                          # 문제별 소요 시간 기록
         shuffled_quizzes = random.sample(self.quizzes, count)  # 퀴즈 순서 랜덤 섞기
+
+        game_start = datetime.datetime.now()         # 게임 시작 시간
 
         for i, quiz in enumerate(shuffled_quizzes):
             print(f"[{i + 1} / {len(shuffled_quizzes)}]")
             quiz.display()
 
+            question_start = datetime.datetime.now() # 문제 시작 시간
             user_answer = self.input_number("정답 번호 > ", 1, 4)
+            question_end = datetime.datetime.now()   # 문제 종료 시간
+
+            elapsed = (question_end - question_start).total_seconds()
+            question_times.append(elapsed)
+            print(f"⏱ 소요 시간: {elapsed:.1f}초")
 
             if quiz.check(user_answer):
                 print("정답입니다!\n")
@@ -72,13 +83,35 @@ class QuizGame:
             else:
                 print(f"오답입니다. 정답은 {quiz.answer}번입니다.\n")
 
-        # 최종 결과
-        print(f"최종 점수: {score} / {len(shuffled_quizzes)}")
+        game_end = datetime.datetime.now()           # 게임 종료 시간
+
+        # 통계 계산
+        playtime = (game_end - game_start).total_seconds()
+        avg_time = playtime / count
+        accuracy = (score / count) * 100
+
+        # 최종 결과 출력
+        print("─" * 40)
+        print(f"최종 점수  : {score} / {count}")
+        print(f"정답률     : {accuracy:.1f}%")
+        print(f"총 플레이타임  : {playtime:.1f}초")
+        print(f"문제 당 평균 시간: {avg_time:.1f}초")
+        print("─" * 40)
 
         if score > self.best_score:
             self.best_score = score
             print("최고 점수를 갱신했습니다!")
 
+        # 히스토리 기록
+        record = {
+            "date": game_start.strftime("%Y-%m-%d %H:%M:%S"),
+            "total": count,
+            "score": score,
+            "playtime": round(playtime, 1),
+            "avg_time": round(avg_time, 1),
+            "accuracy": round(accuracy, 1)
+        }
+        self.history.append(record)
         self.save()
         input("\n엔터를 누르면 메뉴로 돌아갑니다.")
         self.show_menu()
@@ -156,7 +189,21 @@ class QuizGame:
     def show_score(self):
         self.clear()
         print("=== 점수 확인 ===\n")
-        print(f"최고 점수: {self.best_score} / {len(self.quizzes)}")
+
+        if not self.history:
+            print("아직 게임 기록이 없습니다.")
+            input("\n엔터를 누르면 메뉴로 돌아갑니다.")
+            return self.show_menu()
+
+        print(f"최고 점수: {self.best_score}점\n")
+        print("─" * 90)
+        print(f"{'#':<4} {'날짜':<22} {'점수':<8} {'정답률':<8} {'플레이타임':<12} {'평균시간'}")
+        print("─" * 90)
+
+        for i, r in enumerate(self.history, start=1):
+            print(f"{i:<4} {r['date']:<22} {r['score']}/{r['total']:<5} {r['accuracy']:<7.1f}% {r['playtime']:<11.1f}초 {r['avg_time']:.1f}초")
+
+        print("─" * 90)
         input("\n엔터를 누르면 메뉴로 돌아갑니다.")
         self.show_menu()
 
@@ -167,7 +214,8 @@ class QuizGame:
         try:
             data = {
                 "quizzes": [quiz.to_dict() for quiz in self.quizzes],
-                "best_score": self.best_score
+                "best_score": self.best_score,
+                "history": self.history
             }
             with open(self.FILE_PATH, "w", encoding="utf-8") as f:
                 json.dump(data, f, ensure_ascii=False, indent=2)
@@ -181,6 +229,8 @@ class QuizGame:
                 data = json.load(f)
                 self.quizzes = [Quiz.from_dict(q) for q in data["quizzes"]]
                 self.best_score = data["best_score"]
+                self.history = data.get("history", [])
+                return None  # 정상적으로 불러왔을 때는 경고 메시지 없음
         except FileNotFoundError:
             self.quizzes = self.default_quizzes()
         except (json.JSONDecodeError, KeyError):
