@@ -495,20 +495,64 @@ docs: README.md 작성 완료
 
 ---
 
-## 제출 체크리스트
+## 코드 리뷰
 
-### 프로그램
+### 예외 처리 추가가 필요한 부분
 
-- [ ] 메뉴 → 퀴즈 풀기 / 추가 / 목록 / 점수 / 종료 동작
-- [ ] 퀴즈 5개 이상 포함
-- [ ] 재실행해도 퀴즈와 점수 유지 (`state.json`)
-- [ ] `Quiz`, `QuizGame` 클래스 2개 이상 정의
-- [ ] 예외 처리 적용 (잘못된 입력, Ctrl+C, 파일 오류)
+#### 1. `add_quiz` - 빈 입력 검증 없음 (`game.py:123-128`)
+`question`과 `choices`에 빈 문자열이 그대로 저장된다. `.strip()` 후 빈 값 체크가 필요하다.
 
-### GitHub
+#### 2. `from_dict` - `is_custom` 키 누락 대응 없음 (`quiz.py:42`)
+`hint`은 `if "hint" in data`로 방어하지만, `is_custom`은 `data["is_custom"]`으로 직접 접근한다. 이전 버전 `state.json`에 해당 키가 없으면 `KeyError`가 발생한다.
+```python
+is_custom=data.get("is_custom", False)
+```
 
-- [ ] 코드 업로드 완료
-- [ ] 의미 있는 커밋 10개 이상
-- [ ] 브랜치 생성 및 병합 1회 이상 (권장: 기능마다 브랜치 분리)
-- [ ] clone, pull 각 1회 이상
-- [ ] README.md 6개 항목 포함
+#### 3. load - 파일 손상 시 손상 파일이 남아있음 (game.py:191-193)
+JSON 파싱 실패 시 퀴즈를 초기화하지만 손상된 state.json은 그대로 남는다. 다음 실행 때도 같은 경고가 반복된다. 초기화 후 save()를 호출하거나 파일을 삭제해야 한다.
+
+#### 4. best_score 비교 기준 불일치 (game.py:101)
+5문제 중 5점 vs 10문제 중 3점을 단순 점수로 비교한다. 문제 수가 다르면 의미 없는 비교가 된다. 정답률 기반으로 비교하거나, 같은 문제 수일 때만 비교하는 것이 적절하다.
+
+### 리팩터링이 필요한 부분
+
+#### 1. from_dict 중복 정의 (quiz.py:34-55)
+from_dict 메서드가 두 번 정의되어 있다. 뒤의 것이 앞의 것을 덮어쓰므로 첫 번째는 죽은 코드이다. 하나를 삭제해야 한다.
+
+#### 2. 재귀 기반 메뉴 흐름 (RecursionError 위험)
+play(), add_quiz(), delete_quiz(), show_list(), show_score() 모두 끝에서 self.show_menu()를 재귀 호출한다. 오래 플레이하면 Python의 재귀 제한(기본 1000)에 도달해 RecursionError가 발생한다.
+
+수정 방향: run()에서 while 루프로 전환:
+
+```python
+def run(self):
+    warning = self.warningMessage
+    while True:
+        choice = self.show_menu(warningMessage=warning)
+        warning = None
+        self.handle_menu(choice)
+```
+각 메서드 끝의 self.show_menu() 호출을 모두 제거한다.
+
+#### 3. show_list 문제 중복 출력 (game.py:175-176)
+```python
+print(f"[{i}] {label} {quiz.question}")  # label 포함
+print(f"[{i}] {quiz.question}")          # label 없이 또 출력
+```
+한 줄을 삭제해야 한다.
+
+#### 4. 변수명 PEP 8 위반 (game.py:14)
+warningMessage는 camelCase이다. Python 컨벤션에 따라 warning_message로 변경하는 것이 좋다.
+
+#### 5. quiz.py의 미사용 필드 (quiz.py:8)
+self.record = None은 어디서도 사용되지 않는다. 현재 기록은 game.py의 self.history에서 관리되므로 제거 가능하다.
+
+#### 6. display 메서드의 표현식 문 (quiz.py:15)
+
+print(f"힌트: {self.hint}") if self.hint else None  # 표현식을 문으로 사용
+관용적으로는 if 문으로 작성하는 것이 낫다:
+
+```python
+if self.hint:
+    print(f"힌트: {self.hint}")
+```
