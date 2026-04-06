@@ -159,9 +159,12 @@ class QuizGame:
             label = "[사용자 추가]" if quiz.is_custom else "[기본]"
             print(f"[{i}] {label} {quiz.question}")
 
-        index = self.input_number("삭제할 퀴즈 번호 > ", 1, len(self.quizzes)) - 1
+        print("취소하려면 0을 입력하세요.")
+        index = self.input_number("삭제할 퀴즈 번호 > ", 0, len(self.quizzes)) - 1
 
-        if not self.quizzes[index].is_custom:
+        if index == -1:
+            print("취소되었습니다.")
+        elif not self.quizzes[index].is_custom:
             print("기본 퀴즈는 삭제할 수 없습니다.")
         else:
             del self.quizzes[index]
