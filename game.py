@@ -50,8 +50,13 @@ class QuizGame:
             input("엔터를 누르면 메뉴로 돌아갑니다.")
             return self.show_menu()
 
+        # 문제 수 선택
+        total = len(self.quizzes)
+        print(f"총 {total}개의 퀴즈가 있습니다.")
+        count = self.input_number(f"몇 문제를 풀겠습니까? (1~{total}) > ", 1, total)
+
         score = 0
-        shuffled_quizzes = random.sample(self.quizzes, len(self.quizzes))  # 퀴즈 순서 랜덤 섞기
+        shuffled_quizzes = random.sample(self.quizzes, count)  # 퀴즈 순서 랜덤 섞기
 
         for i, quiz in enumerate(shuffled_quizzes):
             print(f"[{i + 1} / {len(shuffled_quizzes)}]")
