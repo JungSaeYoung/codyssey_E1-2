@@ -18,11 +18,11 @@ class QuizGame:
     # --- 메뉴 ---
     def show_menu(self, warningMessage=None):
         self.clear()
-        main_menu = "=== 퀴즈 게임 ===\n1. 퀴즈 풀기\n2. 퀴즈 추가\n3. 퀴즈 목록\n4. 점수 확인\n5. 종료"
+        main_menu = "=== 퀴즈 게임 ===\n1. 퀴즈 풀기\n2. 퀴즈 추가\n3. 퀴즈 삭제\n4. 퀴즈 목록\n5. 점수 확인\n6. 종료"
         print(main_menu)
         if warningMessage:
             print(warningMessage)
-        main_input = self.input_number("메뉴 번호를 입력하세요 > ", 1, 5)
+        main_input = self.input_number("메뉴 번호를 입력하세요 > ", 1, 6)
 
         return self.handle_menu(int(main_input))
 
@@ -32,10 +32,12 @@ class QuizGame:
         elif choice == 2:
             self.add_quiz()
         elif choice == 3:
-            self.show_list()
+            self.delete_quiz()
         elif choice == 4:
-            self.show_score()
+            self.show_list()
         elif choice == 5:
+            self.show_score()
+        elif choice == 6:
             print("게임을 종료합니다.")
             self.save()  # 종료 전 상태 저장
             exit()
@@ -101,6 +103,31 @@ class QuizGame:
         print("퀴즈가 추가되었습니다.")
         self.show_menu()
 
+    def delete_quiz(self):
+        self.clear()
+        print("=== 퀴즈 삭제 ===\n")
+
+        if not self.quizzes:
+            print("등록된 퀴즈가 없습니다.")
+            input("\n엔터를 누르면 메뉴로 돌아갑니다.")
+            return self.show_menu()
+
+        for i, quiz in enumerate(self.quizzes, start=1):
+            label = "[사용자 추가]" if quiz.is_custom else "[기본]"
+            print(f"[{i}] {label} {quiz.question}")
+
+        index = self.input_number("삭제할 퀴즈 번호 > ", 1, len(self.quizzes)) - 1
+
+        if not self.quizzes[index].is_custom:
+            print("기본 퀴즈는 삭제할 수 없습니다.")
+        else:
+            del self.quizzes[index]
+            self.save()  # 즉시 저장
+            print("퀴즈가 삭제되었습니다.")
+
+        input("\n엔터를 누르면 메뉴로 돌아갑니다.")
+        self.show_menu()
+
     def show_list(self):
         self.clear()
         print("=== 퀴즈 목록 ===\n")
@@ -120,7 +147,7 @@ class QuizGame:
                     print(f"  {j}. {choice}  ← 정답")
                 else:
                     print(f"  {j}. {choice}")
-            print()
+            print(f"  힌트: {quiz.hint}" if quiz.hint else "  힌트: 없음")
 
         print(f"총 {len(self.quizzes)}개의 퀴즈가 있습니다.")
         input("\n엔터를 누르면 메뉴로 돌아갑니다.")
