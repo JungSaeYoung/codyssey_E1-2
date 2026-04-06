@@ -3,22 +3,22 @@ import signal
 
 def main():
     def handle_suspend(signum, frame):
-        # Ctrl+Z로 프로그램이 일시 중지되는 것을 방지하기 위해 시그널 핸들러를 설정합니다.(macOS에서는 SIGTSTP가 Ctrl+Z에 해당합니다.)
+        # Ctrl+Z로 프로그램이 일시 중지되는 것을 방지하기 위해 시그널 핸들러를 설정(macOS에서는 SIGTSTP가 Ctrl+Z에 해당)
         print("\nCtrl+Z는 사용할 수 없습니다.")
 
-    if hasattr(signal, 'SIGTSTP'): # SIGTSTP가 지원되는 플랫폼에서만 핸들러를 설정합니다.
+    if hasattr(signal, 'SIGTSTP'): # SIGTSTP가 지원되는 플랫폼에서만 핸들러를 설정
         signal.signal(signal.SIGTSTP, handle_suspend)
 
     game = QuizGame()
     
     try:
         game.run()
-    except KeyboardInterrupt: # Ctrl+C로 프로그램이 종료될 때를 처리합니다.
+    except KeyboardInterrupt: # Ctrl+C로 프로그램이 종료될 때를 처리
         print("\n\n프로그램을 종료합니다.(keyboard interrupt)")
         game.save()
     except EOFError: # 입력 스트림이 종료될 때를 처리합니다. (예: Ctrl+D)
         print("\n입력 스트림이 종료되었습니다.(EOF error)")
         game.save()
 
-if __name__ == "__main__":
+if __name__ == "__main__": # 클래스로 객체를 만들 때 자동으로 호출되는 초기화 메서드
     main()

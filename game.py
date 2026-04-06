@@ -6,7 +6,7 @@ import random
 import datetime
 
 class QuizGame:
-    def __init__(self):
+    def __init__(self): # QuizGame()을 호출하는 순간 __init__이 자동으로 실행되면서 속성을 초기화
         self.best_score = 0
         self.is_windows = os.name == "nt"  # 초기화 시 OS 한 번만 확인
         self.quizzes = self.default_quizzes()  # 기본 탑재된 퀴즈 로드
@@ -247,7 +247,7 @@ class QuizGame:
             }
             with open(self.FILE_PATH, "w", encoding="utf-8") as f:
                 json.dump(data, f, ensure_ascii=False, indent=2)
-                # ensure_ascii=False — 한글이 유니코드 이스케이프(\uc608\uc2dc) 대신 한글 그대로 저장됩니다.
+                # ensure_ascii=False — 한글이 유니코드 이스케이프(\uc608\uc2dc) 대신 한글 그대로 저장
         except OSError:
             print("파일 저장에 실패했습니다.")
 
