@@ -188,31 +188,37 @@ class QuizGame:
             Quiz(
                 question="다음 중 파이썬의 자료형이 아닌 것은?",
                 choices=["list", "tuple", "dict", "array"],
+                hint="파이썬에는 array 자료형이 없습니다.",
                 answer=4
             ),
             Quiz(
                 question="다음 중 파이썬에서 반복문을 만드는 키워드가 아닌 것은?",
                 choices=["for", "while", "repeat", "do"],
+                hint="파이썬에는 repeat와 do 키워드가 없습니다.",
                 answer=3
             ),
             Quiz(
                 question="다음 중 파이썬에서 함수를 정의하는 키워드는?",
                 choices=["function", "def", "fun", "define"],
+                hint="파이썬에서는 def 키워드를 사용하여 함수를 정의합니다.",
                 answer=2
             ),
             Quiz(
                 question="다음 중 파이썬에서 예외 처리를 위한 키워드가 아닌 것은?",
                 choices=["try", "except", "catch", "finally"],
+                hint="파이썬에는 catch 키워드가 없습니다.",
                 answer=3
             ),
             Quiz(
                 question="다음 중 파이썬에서 모듈을 가져오는 키워드는?",
                 choices=["import", "include", "require", "using"],
+                hint="파이썬에서는 import 키워드를 사용하여 모듈을 가져옵니다.",
                 answer=1
             ),
             Quiz(
                 question="다음 중 파이썬에서 클래스 정의에 사용하는 키워드는?",
                 choices=["class", "object", "def", "struct"],
+                hint="파이썬에서는 class 키워드를 사용하여 클래스를 정의합니다.",
                 answer=1
             )
         ]

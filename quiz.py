@@ -1,8 +1,9 @@
 class Quiz:
-    def __init__(self, question, choices, answer, is_custom=False):
+    def __init__(self, question, choices, answer, hint=None, is_custom=False):
         self.question = question   # str
         self.choices = choices     # list[str] (4개)
         self.answer = answer       # int (1~4)
+        self.hint = hint
         self.is_custom = is_custom  # 기본: False, 사용자 추가: True
 
     def display(self):
@@ -10,6 +11,7 @@ class Quiz:
         print(self.question)
         for i, choice in enumerate(self.choices, start=1):
             print(f"{i}. {choice}")
+        print(f"힌트: {self.hint}") if self.hint else None
 
     def check(self, user_answer):
         # 정답 여부 반환 → bool
@@ -20,7 +22,9 @@ class Quiz:
         return {
             "question": self.question,
             "choices": self.choices,
-            "answer": self.answer
+            "answer": self.answer,
+            "hint": self.hint,
+            "is_custom": self.is_custom
         }
     
     # static method란 클래스의 인스턴스와 직접적으로 관련이 없는 메서드로, 클래스 이름으로 호출할 수 있는 메서드입니다.
@@ -32,7 +36,9 @@ class Quiz:
         return Quiz(
             question=data["question"],
             choices=data["choices"],
-            answer=data["answer"]
+            answer=data["answer"],
+            hint=data["hint"] if "hint" in data else None,
+            is_custom=data["is_custom"]
         )
 
     # static method: Quiz 인스턴스 생성자 (from_dict)
@@ -42,5 +48,7 @@ class Quiz:
         return Quiz(
             question=data["question"],
             choices=data["choices"],
-            answer=data["answer"]
+            answer=data["answer"],
+            hint=data["hint"] if "hint" in data else None,
+            is_custom=data["is_custom"]
         )
