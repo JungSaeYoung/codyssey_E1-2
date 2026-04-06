@@ -148,7 +148,6 @@ class QuizGame:
         except FileNotFoundError:
             self.quizzes = self.default_quizzes()
         except (json.JSONDecodeError, KeyError):
-            print("데이터 파일이 손상되었습니다. 기본 데이터로 초기화합니다.")
             self.quizzes = self.default_quizzes()
             return "!!warning!! 데이터 파일이 손상되어 초기화되었습니다. !!"
 
