@@ -5,14 +5,14 @@ class Quiz:
         self.answer = answer       # int (1~4)
         self.hint = hint
         self.is_custom = is_custom  # 기본: False, 사용자 추가: True
-        self.record = None  # 플레이 기록 (맞춘 시간, 시도 횟수 등)
 
     def display(self):
         # 문제와 선택지를 출력
         print(self.question)
         for i, choice in enumerate(self.choices, start=1):
             print(f"{i}. {choice}")
-        print(f"힌트: {self.hint}") if self.hint else None
+        if self.hint:
+            print(f"힌트: {self.hint}")
 
     def check(self, user_answer):
         # 정답 여부 반환 → bool
@@ -39,17 +39,5 @@ class Quiz:
             choices=data["choices"],
             answer=data["answer"],
             hint=data["hint"] if "hint" in data else None,
-            is_custom=data["is_custom"]
-        )
-
-    # static method: Quiz 인스턴스 생성자 (from_dict)
-    @staticmethod
-    def from_dict(data):
-        # dict → Quiz 인스턴스로 변환 (파일 불러올 때 사용)
-        return Quiz(
-            question=data["question"],
-            choices=data["choices"],
-            answer=data["answer"],
-            hint=data["hint"] if "hint" in data else None,
-            is_custom=data["is_custom"]
+            is_custom=data["is_custom"] if "is_custom" in data else False
         )

@@ -11,11 +11,15 @@ class QuizGame:
         self.is_windows = os.name == "nt"  # 초기화 시 OS 한 번만 확인
         self.quizzes = self.default_quizzes()  # 기본 탑재된 퀴즈 로드
         self.history = []  # 플레이 기록 (게임 결과 저장용)
-        self.warningMessage = self.load()  # 게임 실행 후 상태 불러오기
+        self.warning_message = self.load()  # 게임 실행 후 상태 불러오기
 
     # --- 진입점 ---
     def run(self):
-        self.show_menu(warningMessage=self.warningMessage)
+        warning = self.warning_message  # 초기 경고 메시지 (파일 손상 등) 전달
+        while True:
+            choice = self.show_menu(warning)
+            warning = None  # 메뉴는 한 번만 보여주고 초기화
+            self.handle_menu(choice)
 
     # --- 메뉴 ---
     def show_menu(self, warningMessage=None):
@@ -25,8 +29,8 @@ class QuizGame:
         if warningMessage:
             print(warningMessage)
         main_input = self.input_number("메뉴 번호를 입력하세요 > ", 1, 6)
-
-        return self.handle_menu(int(main_input))
+        
+        return main_input
 
     def handle_menu(self, choice):
         if choice == 1:
@@ -52,7 +56,7 @@ class QuizGame:
         if not self.quizzes:
             print("등록된 퀴즈가 없습니다.")
             input("엔터를 누르면 메뉴로 돌아갑니다.")
-            return self.show_menu()
+            return None
 
         # 문제 수 선택
         total = len(self.quizzes)
@@ -114,13 +118,16 @@ class QuizGame:
         self.history.append(record)
         self.save()
         input("\n엔터를 누르면 메뉴로 돌아갑니다.")
-        self.show_menu()
 
     def add_quiz(self):
         self.clear()
         print("=== 퀴즈 추가 ===")
 
         question = input("문제를 입력하세요 > ").strip()
+
+        while not question:
+            print("***문제를 입력해야 합니다.***")
+            question = input("문제를 입력하세요 > ").strip()
 
         choices = []
         for i in range(1, 5):
@@ -129,12 +136,15 @@ class QuizGame:
 
         answer = self.input_number("정답 번호 (1~4) > ", 1, 4)
 
+        while not choices[answer - 1]:
+            print("***정답으로 선택된 번호의 선택지가 비어 있습니다.***")
+            answer = self.input_number("정답 번호 (1~4) > ", 1, 4)
+
         hint = input("힌트를 입력하세요 (선택 사항, 엔터로 건너뛰기) > ").strip() or None
 
         self.quizzes.append(Quiz(question, choices, answer, hint=hint, is_custom=True))
         self.save()  # 즉시 저장
         print("퀴즈가 추가되었습니다.")
-        self.show_menu()
 
     def delete_quiz(self):
         self.clear()
@@ -143,7 +153,7 @@ class QuizGame:
         if not self.quizzes:
             print("등록된 퀴즈가 없습니다.")
             input("\n엔터를 누르면 메뉴로 돌아갑니다.")
-            return self.show_menu()
+            return None
 
         for i, quiz in enumerate(self.quizzes, start=1):
             label = "[사용자 추가]" if quiz.is_custom else "[기본]"
@@ -159,7 +169,6 @@ class QuizGame:
             print("퀴즈가 삭제되었습니다.")
 
         input("\n엔터를 누르면 메뉴로 돌아갑니다.")
-        self.show_menu()
 
     def show_list(self):
         self.clear()
@@ -168,12 +177,11 @@ class QuizGame:
         if not self.quizzes:
             print("등록된 퀴즈가 없습니다.")
             input("\n엔터를 누르면 메뉴로 돌아갑니다.")
-            return self.show_menu()
+            return None
 
         for i, quiz in enumerate(self.quizzes, start=1):
             label = "[사용자 추가]" if quiz.is_custom else "[기본]"
             print(f"[{i}] {label} {quiz.question}")
-            print(f"[{i}] {quiz.question}")
 
             for j, choice in enumerate(quiz.choices, start=1):
                 if j == quiz.answer:
@@ -184,7 +192,6 @@ class QuizGame:
 
         print(f"총 {len(self.quizzes)}개의 퀴즈가 있습니다.")
         input("\n엔터를 누르면 메뉴로 돌아갑니다.")
-        self.show_menu()
 
     def show_score(self):
         self.clear()
@@ -193,7 +200,7 @@ class QuizGame:
         if not self.history:
             print("아직 게임 기록이 없습니다.")
             input("\n엔터를 누르면 메뉴로 돌아갑니다.")
-            return self.show_menu()
+            return None
 
         print(f"최고 점수: {self.best_score}점\n")
         print("─" * 90)
@@ -205,7 +212,6 @@ class QuizGame:
 
         print("─" * 90)
         input("\n엔터를 누르면 메뉴로 돌아갑니다.")
-        self.show_menu()
 
     # --- 파일 입출력 ---
     FILE_PATH = "state.json"
@@ -235,6 +241,7 @@ class QuizGame:
             self.quizzes = self.default_quizzes()
         except (json.JSONDecodeError, KeyError):
             self.quizzes = self.default_quizzes()
+            os.remove(self.FILE_PATH)  # 손상된 파일 삭제
             return "!!warning!! 데이터 파일이 손상되어 초기화되었습니다. !!"
 
     # --- 유틸리티 ---
