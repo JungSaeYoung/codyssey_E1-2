@@ -33,10 +33,14 @@ class Quiz:
     # 이 메서드는 Quiz 클래스의 인스턴스와 직접적으로 관련이 없으며, 단순히 데이터를 변환하는 기능을 수행하기 때문에 static method로 정의하는 것이 적절합니다.
     @staticmethod
     def from_dict(data):
-        # dict → Quiz 인스턴스 (불러오기용)
+        choices = data["choices"]
+        if len(choices) != 4:
+            raise ValueError("선택지는 4개여야 합니다.")
+        if not (1 <= data["answer"] <= 4):
+            raise ValueError("정답 번호는 1~4여야 합니다.")
         return Quiz(
             question=data["question"],
-            choices=data["choices"],
+            choices=choices,
             answer=data["answer"],
             hint=data["hint"] if "hint" in data else None,
             is_custom=data["is_custom"] if "is_custom" in data else False

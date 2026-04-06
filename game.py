@@ -206,12 +206,31 @@ class QuizGame:
             return None
 
         print(f"최고 점수: {self.best_score}점\n")
+        header = (
+            f"{self.pad('#', 4)} "
+            f"{self.pad('날짜', 22)} "
+            f"{self.pad('점수', 8)} "
+            f"{self.pad('정답률', 8)} "
+            f"{self.pad('플레이타임', 12)} "
+            f"평균시간"
+        )
         print("─" * 90)
-        print(f"{'#':<4} {'날짜':<22} {'점수':<8} {'정답률':<8} {'플레이타임':<12} {'평균시간'}")
+        print(header)
         print("─" * 90)
 
         for i, r in enumerate(self.history, start=1):
-            print(f"{i:<4} {r['date']:<22} {r['score']}/{r['total']:<5} {r['accuracy']:<7.1f}% {r['playtime']:<11.1f}초 {r['avg_time']:.1f}초")
+            score_str = f"{r['score']}/{r['total']}"
+            accuracy_str = f"{r['accuracy']:.1f}%"
+            playtime_str = f"{r['playtime']:.1f}초"
+            avg_str = f"{r['avg_time']:.1f}초"
+            print(
+                f"{self.pad(i, 4)} "
+                f"{self.pad(r['date'], 22)} "
+                f"{self.pad(score_str, 8)} "
+                f"{self.pad(accuracy_str, 8)} "
+                f"{self.pad(playtime_str, 12)} "
+                f"{avg_str}"
+            )
 
         print("─" * 90)
         input("\n엔터를 누르면 메뉴로 돌아갑니다.")
@@ -242,10 +261,11 @@ class QuizGame:
                 return None  # 정상적으로 불러왔을 때는 경고 메시지 없음
         except FileNotFoundError:
             self.quizzes = self.default_quizzes()
-        except (json.JSONDecodeError, KeyError):
+        except (json.JSONDecodeError, KeyError, ValueError):
             self.quizzes = self.default_quizzes()
             os.remove(self.FILE_PATH)  # 손상된 파일 삭제
             return "!!warning!! 데이터 파일이 손상되어 초기화되었습니다. !!"
+        
 
     # --- 유틸리티 ---
     # 숫자 입력 시 예외 처리를 위해 input 함수 래핑
@@ -262,6 +282,11 @@ class QuizGame:
                 continue
 
             return number
+
+    # 한글 등 전각 문자의 표시 너비를 고려하여 왼쪽 정렬 패딩
+    def pad(self, text, width):
+        display_width = sum(2 if '\uac00' <= ch <= '\ud7a3' else 1 for ch in str(text))
+        return str(text) + ' ' * max(0, width - display_width)
 
     # 화면 클리어 함수 (Windows와 Unix 계열 OS 모두 지원)
     def clear(self):
