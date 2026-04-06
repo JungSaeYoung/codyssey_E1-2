@@ -2,6 +2,7 @@ import os
 import sys
 from quiz import Quiz
 import json
+import random
 
 class QuizGame:
     def __init__(self):
@@ -41,88 +42,89 @@ class QuizGame:
 
     # --- 기능 ---
     def play(self):
-      self.clear()
-      print("=== 퀴즈 풀기 ===\n")
+        self.clear()
+        print("=== 퀴즈 풀기 ===\n")
 
-      if not self.quizzes:
-          print("등록된 퀴즈가 없습니다.")
-          input("엔터를 누르면 메뉴로 돌아갑니다.")
-          return self.show_menu()
+        if not self.quizzes:
+            print("등록된 퀴즈가 없습니다.")
+            input("엔터를 누르면 메뉴로 돌아갑니다.")
+            return self.show_menu()
 
-      score = 0
+        score = 0
+        shuffled_quizzes = random.sample(self.quizzes, len(self.quizzes))  # 퀴즈 순서 랜덤 섞기
 
-      for i, quiz in enumerate(self.quizzes):
-          print(f"[{i + 1} / {len(self.quizzes)}]")
-          quiz.display()
+        for i, quiz in enumerate(shuffled_quizzes):
+            print(f"[{i + 1} / {len(shuffled_quizzes)}]")
+            quiz.display()
 
-          user_answer = self.input_number("정답 번호 > ", 1, 4)
+            user_answer = self.input_number("정답 번호 > ", 1, 4)
 
-          if quiz.check(user_answer):
-              print("정답입니다!\n")
-              score += 1
-          else:
-              print(f"오답입니다. 정답은 {quiz.answer}번입니다.\n")
+            if quiz.check(user_answer):
+                print("정답입니다!\n")
+                score += 1
+            else:
+                print(f"오답입니다. 정답은 {quiz.answer}번입니다.\n")
 
-      # 최종 결과
-      print(f"최종 점수: {score} / {len(self.quizzes)}")
+        # 최종 결과
+        print(f"최종 점수: {score} / {len(shuffled_quizzes)}")
 
-      if score > self.best_score:
-          self.best_score = score
-          print("최고 점수를 갱신했습니다!")
+        if score > self.best_score:
+            self.best_score = score
+            print("최고 점수를 갱신했습니다!")
 
-      self.save()
-      input("\n엔터를 누르면 메뉴로 돌아갑니다.")
-      self.show_menu()
-    
+        self.save()
+        input("\n엔터를 누르면 메뉴로 돌아갑니다.")
+        self.show_menu()
+
     def add_quiz(self):
-      self.clear()
-      print("=== 퀴즈 추가 ===")
+        self.clear()
+        print("=== 퀴즈 추가 ===")
 
-      question = input("문제를 입력하세요 > ").strip()
+        question = input("문제를 입력하세요 > ").strip()
 
-      choices = []
-      for i in range(1, 5):
-          choice = input(f"{i}번 선택지 > ").strip()
-          choices.append(choice)
+        choices = []
+        for i in range(1, 5):
+            choice = input(f"{i}번 선택지 > ").strip()
+            choices.append(choice)
 
-      answer = self.input_number("정답 번호 (1~4) > ", 1, 4)
+        answer = self.input_number("정답 번호 (1~4) > ", 1, 4)
 
-      self.quizzes.append(Quiz(question, choices, answer, is_custom=True))
-      self.save()  # 즉시 저장
-      print("퀴즈가 추가되었습니다.")
-      self.show_menu()
+        self.quizzes.append(Quiz(question, choices, answer, is_custom=True))
+        self.save()  # 즉시 저장
+        print("퀴즈가 추가되었습니다.")
+        self.show_menu()
 
     def show_list(self):
-      self.clear()
-      print("=== 퀴즈 목록 ===\n")
+        self.clear()
+        print("=== 퀴즈 목록 ===\n")
 
-      if not self.quizzes:
-          print("등록된 퀴즈가 없습니다.")
-          input("\n엔터를 누르면 메뉴로 돌아갑니다.")
-          return self.show_menu()
+        if not self.quizzes:
+            print("등록된 퀴즈가 없습니다.")
+            input("\n엔터를 누르면 메뉴로 돌아갑니다.")
+            return self.show_menu()
 
-      for i, quiz in enumerate(self.quizzes, start=1):
-          label = "[사용자 추가]" if quiz.is_custom else "[기본]"
-          print(f"[{i}] {label} {quiz.question}")
-          print(f"[{i}] {quiz.question}")
+        for i, quiz in enumerate(self.quizzes, start=1):
+            label = "[사용자 추가]" if quiz.is_custom else "[기본]"
+            print(f"[{i}] {label} {quiz.question}")
+            print(f"[{i}] {quiz.question}")
 
-          for j, choice in enumerate(quiz.choices, start=1):
-              if j == quiz.answer:
-                  print(f"  {j}. {choice}  ← 정답")
-              else:
-                  print(f"  {j}. {choice}")
-          print()
+            for j, choice in enumerate(quiz.choices, start=1):
+                if j == quiz.answer:
+                    print(f"  {j}. {choice}  ← 정답")
+                else:
+                    print(f"  {j}. {choice}")
+            print()
 
-      print(f"총 {len(self.quizzes)}개의 퀴즈가 있습니다.")
-      input("\n엔터를 누르면 메뉴로 돌아갑니다.")
-      self.show_menu()
+        print(f"총 {len(self.quizzes)}개의 퀴즈가 있습니다.")
+        input("\n엔터를 누르면 메뉴로 돌아갑니다.")
+        self.show_menu()
 
     def show_score(self):
-      self.clear()
-      print("=== 점수 확인 ===\n")
-      print(f"최고 점수: {self.best_score} / {len(self.quizzes)}")
-      input("\n엔터를 누르면 메뉴로 돌아갑니다.")
-      self.show_menu()
+        self.clear()
+        print("=== 점수 확인 ===\n")
+        print(f"최고 점수: {self.best_score} / {len(self.quizzes)}")
+        input("\n엔터를 누르면 메뉴로 돌아갑니다.")
+        self.show_menu()
 
     # --- 파일 입출력 ---
     FILE_PATH = "state.json"
@@ -154,26 +156,26 @@ class QuizGame:
     # --- 유틸리티 ---
     # 숫자 입력 시 예외 처리를 위해 input 함수 래핑
     def input_number(self, prompt, min_val, max_val):
-      while True:
-          user_input = input(prompt).strip()
-          if not user_input.isdigit():
-              print("***숫자만 입력하세요.***")
-              continue
+        while True:
+            user_input = input(prompt).strip()
+            if not user_input.isdigit():
+                print("***숫자만 입력하세요.***")
+                continue
 
-          number = int(user_input)
-          if number < min_val or number > max_val:
-              print(f"***{min_val}에서 {max_val} 사이의 숫자를 입력하세요.***")
-              continue
+            number = int(user_input)
+            if number < min_val or number > max_val:
+                print(f"***{min_val}에서 {max_val} 사이의 숫자를 입력하세요.***")
+                continue
 
-          return number
+            return number
 
     # 화면 클리어 함수 (Windows와 Unix 계열 OS 모두 지원)
     def clear(self):
-      if self.is_windows:
-          os.system("cls")
-      else:
-          sys.stdout.write("\033[2J\033[H")
-          sys.stdout.flush()
+        if self.is_windows:
+            os.system("cls")
+        else:
+            sys.stdout.write("\033[2J\033[H")
+            sys.stdout.flush()
 
     # 기본 퀴즈 6개 제공
     def default_quizzes(self):
