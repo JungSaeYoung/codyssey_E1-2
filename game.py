@@ -22,12 +22,12 @@ class QuizGame:
             self.handle_menu(choice)
 
     # --- 메뉴 ---
-    def show_menu(self, warningMessage=None):
+    def show_menu(self, warning_message=None):
         self.clear()
         main_menu = "=== 퀴즈 게임 ===\n1. 퀴즈 풀기\n2. 퀴즈 추가\n3. 퀴즈 삭제\n4. 퀴즈 목록\n5. 플레이 기록 확인\n6. 종료"
         print(main_menu)
-        if warningMessage:
-            print(warningMessage)
+        if warning_message:
+            print(warning_message)  # 파일 손상 경고 메시지 출력
         main_input = self.input_number("메뉴 번호를 입력하세요 > ", 1, 6)
         
         return main_input
